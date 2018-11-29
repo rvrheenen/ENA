@@ -35,6 +35,7 @@ class CenterFrame(tk.Frame):
         self.selector_menu.grid(row=0, column=1, sticky="nw", padx=10)
         menu = self.selector_menu["menu"]
 
+        #TODO only show if cable is not selected
         self.num_selector = tk.StringVar(self)
         self.num_selector.set(1)
         self.num_selector_menu = tk.OptionMenu(self, self.num_selector, *range(1,9))
@@ -64,10 +65,6 @@ class CenterFrame(tk.Frame):
         self.canvas.bind("<B1-Motion>", self.on_move)
         self.canvas.bind("<ButtonRelease-1>", self.on_release)
 
-    def create_map_legend(self):
-        self.lbl_legend_head = tk.Label(self, text="Legend:")
-        self.lbl_legend_head.grid(column=3, row=1, sticky="ne")
-
     ##### CLICK EVENTS
     def on_click(self, event):
         self._dragging = True
@@ -90,5 +87,12 @@ class CenterFrame(tk.Frame):
                 else:
                     self._dragging = False
 
+                # TODO make the rest of the map draw things
+
     def on_release(self, event):
         self._dragging = False
+
+    def create_map_legend(self):
+        # TODO Fill the legend
+        self.lbl_legend_head = tk.Label(self, text="Legend:")
+        self.lbl_legend_head.grid(column=3, row=1, sticky="ne")

@@ -12,9 +12,9 @@ class MenuBar(tk.Menu):
     def make_filemenu(self):
         self.filemenu = tk.Menu(self, tearoff=0)
         self.filemenu.add_command(label="New", command=self.file_new)
-        self.filemenu.add_command(label="Open", command=self.do_nothing)
-        self.filemenu.add_command(label="Save", command=self.do_nothing)
-        self.filemenu.add_command(label="Save as...", command=self.do_nothing)
+        self.filemenu.add_command(label="Open", command=self.file_open)
+        self.filemenu.add_command(label="Save", command=self.file_save)
+        self.filemenu.add_command(label="Save as...", command=self.file_save)
         self.filemenu.add_command(label="Close", command=self.do_nothing)
         self.filemenu.add_separator()
         self.filemenu.add_command(label="Exit", command=self.quit)
@@ -24,6 +24,7 @@ class MenuBar(tk.Menu):
         self.editmenu = tk.Menu(self, tearoff=0)
         self.editmenu.add_command(label="Clear", command=self.edit_clear)
         self.editmenu.add_separator()
+        # TODO Contemplate whether making undo functionality is worth the time and effort
         self.editmenu.add_command(label="Undo", command=self.do_nothing)
         self.editmenu.add_command(label="Cut", command=self.do_nothing)
         self.editmenu.add_command(label="Copy", command=self.do_nothing)
@@ -46,10 +47,16 @@ class MenuBar(tk.Menu):
         if tk.messagebox.askyesno("New assistant", "Would you like to start a new assistant?"):
             self.parent.reinitialize()
 
+    def file_open(self):
+        # TODO
+        self.do_nothing()
+
     def file_save(self):
+        # TODO
         self.do_nothing()
 
     def file_load(self):
+        # TODO
         self.do_nothing()
 
     #### Edit methods
@@ -59,6 +66,7 @@ class MenuBar(tk.Menu):
 
     #### Help methods
     def help_index(self):
+        # TODO
         self.do_nothing()
 
     def help_about(self):
