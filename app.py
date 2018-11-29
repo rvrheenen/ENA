@@ -1,9 +1,9 @@
 import tkinter as tk
-from ENA.menu_bar import *
-from ENA.top_frame import *
-from ENA.center_frame import *
-from ENA.bottom_frame import *
-from ENA.util import Helper
+from menu_bar import *
+from top_frame import *
+from center_frame import *
+from bottom_frame import *
+from util import Helper
 
 WIDTH = 1280
 HEIGHT = 800

@@ -1,5 +1,5 @@
 import tkinter as tk
-from ENA.util import Selectors, OptionMenu
+from util import Selectors, OptionMenu
 
 class CenterFrame(tk.Frame):
     def __init__(self, parent):
