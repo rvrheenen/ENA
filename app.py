@@ -1,0 +1,66 @@
+import tkinter as tk
+from ENA.menu_bar import *
+from ENA.top_frame import *
+from ENA.center_frame import *
+from ENA.bottom_frame import *
+from ENA.util import Helper
+
+WIDTH = 1280
+HEIGHT = 800
+DEBUG = False
+
+class App(tk.Tk):
+    def __init__(self, parent):
+        tk.Tk.__init__(self, parent)
+        self.parent = parent
+
+        # Set constants
+        self.width  = WIDTH
+        self.height = HEIGHT
+        self.debug  = DEBUG
+
+        #initialize app
+        self.initialize()
+
+    def initialize(self):
+        # placeholder vars
+        self.dim_x = 10
+        self.dim_y = 10
+
+        self.geometry(f'{self.width}x{self.height}')
+
+        # Create frames
+        self.menu_bar = MenuBar(self)
+        self.config(menu=self.menu_bar)
+        self.top_frame = TopFrame(self)
+        self.center_frame = CenterFrame(self)
+        self.bottom_frame = BottomFrame(self)
+
+        # configure rows of frames,
+        self.grid_rowconfigure(0, weight=0)
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(1, weight=1)
+        # self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(2, weight=0)
+
+
+    def reinitialize(self):
+        to_destroy = ["menu_bar", "top_frame", "center_frame", "bottom_frame"]
+
+        for thing in to_destroy:
+            if hasattr(self, "center_frame"):
+                try:
+                    self.__getattribute__(thing).destroy()
+                except:
+                    pass
+
+        self.initialize()
+
+    def start(self):
+        try:
+            self.dim_x = int(self.top_frame.txt_dim_x.get())
+            self.dim_y = int(self.top_frame.txt_dim_y.get())
+            self.center_frame = CenterFrame(self)
+            self.center_frame.start_map_design()
+        except ValueError:
+            Helper.message_box("error", "Bad Input", "Illegal values, please try again")
