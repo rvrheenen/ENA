@@ -56,3 +56,13 @@ class Selectors(list):
 
         def is_draggable(self):
             return self.type == self.parent.TYPE_COVERAGE
+
+class Trial:
+    ''' Allows for one-line try with no errors without except
+        EG: with Trial(): doesntexist.destroy()
+    '''
+    def __enter__(self):
+        pass
+
+    def __exit__(self, *args):
+        return True
