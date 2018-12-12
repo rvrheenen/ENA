@@ -5,7 +5,6 @@ from io import BytesIO
 from util import Selectors, OptionMenu, Trial
 
 
-
 class CenterFrame(tk.Frame):
     def __init__(self, parent):
         self.DRAW_MODE_COVERAGE = "coverage"
@@ -32,6 +31,7 @@ class CenterFrame(tk.Frame):
         self.dim_x = self.parent.dim_x
         self.dim_y = self.parent.dim_y
         self.square_size = 20
+        self.text_size = 6
         self.selector_options = Selectors()
 
     def create_map_settings(self):
@@ -69,7 +69,7 @@ class CenterFrame(tk.Frame):
         else:
             self.set_draw_mode(self.DRAW_MODE_COVERAGE)
 
-    def selector_menu_items_selection_event(self):
+    def selector_menu_items_selection_event(self, event=None):
         if self.draw_mode == self.DRAW_MODE_ITEMS and self.selector_items.get() == "cable":
             self.num_selector_menu.grid()
         else:
@@ -102,8 +102,9 @@ class CenterFrame(tk.Frame):
             fp = BytesIO()
             ImageGrab.grab(bbox=box).save(fp, 'PNG')
             self.canvas_items.background = ImageTk.PhotoImage(Image.open(fp))
+            bg_image = self.canvas_items.create_image(0, 0, image=self.canvas_items.background, anchor=tk.NW)
+            self.canvas_items.tag_lower(bg_image)
 
-            self.canvas_items.create_image(0, 0, image=self.canvas_items.background, anchor=tk.NW)
 
     def create_map_canvas(self):
         with Trial(): self.canvas_coverage.destroy()  # remove canvas_coverage if it exists
@@ -121,7 +122,6 @@ class CenterFrame(tk.Frame):
 
         self.canvas_items = tk.Canvas(self, height=self.square_size*self.dim_y + 1)
         self.canvas_items.grid(column=0, row=1, sticky="new", columnspan=4)
-        self.canvas_items.create_oval(10,10,20,20)
 
         for canv in [self.canvas_coverage, self.canvas_items]:
             canv.bind("<ButtonPress-1>", self.on_click)
@@ -151,8 +151,18 @@ class CenterFrame(tk.Frame):
                     self.canvas_coverage.itemconfigure(rect_id, fill=selector.repr)
 
             elif self.draw_mode == self.DRAW_MODE_ITEMS:
-                pass
-                # TODO make the rest of the map draw things
+                def get_text_xy(event, name):
+                    ofset_x, ofset_y= {"uplink": [6,7], "cable":[11,17], "AP":[17,7]}[name]
+                    return ((event.x-1) // self.square_size) * self.square_size + ofset_x, ((event.y-1) // self.square_size) * self.square_size + ofset_y
+
+                selector = self.item_options.get_by_name(self.selector_items.get())
+                items = self.canvas_items.find_closest(*get_text_xy(event, selector.name), 0)
+                if items and self.canvas_items.type(items[0]) == "text":
+                    self.canvas_items.delete(items[0])
+                else:
+                    self.canvas_items.create_text(*get_text_xy(event, selector.name),
+                                                  text={"uplink": "U", "cable":f'C{self.num_selector.get()}', "AP":"A"}[selector.name],
+                                                  font = ("Tahoma", self.text_size))
 
     def on_release(self, event):
         self._dragging = False
