@@ -22,19 +22,23 @@ class OptionMenu(tk.OptionMenu):
 
 
 class Selectors(list):
-    def __init__(self):
+    def __init__(self, fill=None):
         self._inner_list = list()
         self.TYPE_COVERAGE = "coverage"
         self.TYPE_ITEM = "item"
 
-        self.append(self.Selector(self, "basic coverage", self.TYPE_COVERAGE, "yellow"))
-        self.append(self.Selector(self, "high coverage", self.TYPE_COVERAGE, "orange"))
-        self.append(self.Selector(self, "intense coverage", self.TYPE_COVERAGE, "red"))
-        self.append(self.Selector(self, "no coverage needed", self.TYPE_COVERAGE, "white"))
-        self.append(self.Selector(self, "not on map", self.TYPE_COVERAGE, "black"))
-        self.append(self.Selector(self, "uplink", self.TYPE_ITEM, ""))
-        self.append(self.Selector(self, "cable", self.TYPE_ITEM, ""))
-        self.append(self.Selector(self, "AP", self.TYPE_ITEM, ""))
+        if fill == None:
+            self.append(self.Selector(self, "basic coverage", self.TYPE_COVERAGE, "yellow"))
+            self.append(self.Selector(self, "high coverage", self.TYPE_COVERAGE, "orange"))
+            self.append(self.Selector(self, "intense coverage", self.TYPE_COVERAGE, "red"))
+            self.append(self.Selector(self, "no coverage needed", self.TYPE_COVERAGE, "white"))
+            self.append(self.Selector(self, "not on map", self.TYPE_COVERAGE, "black"))
+            self.append(self.Selector(self, "uplink", self.TYPE_ITEM, ""))
+            self.append(self.Selector(self, "cable", self.TYPE_ITEM, ""))
+            self.append(self.Selector(self, "AP", self.TYPE_ITEM, ""))
+        else:
+            for thing in fill:
+                self.append(thing)
 
     def get_by_name(self, name):
         for sel in self:
@@ -43,6 +47,9 @@ class Selectors(list):
 
     def names(self):
         return [s.name for s in self]
+
+    def of_type(self, type):
+        return Selectors([sel for sel in self if sel.type == type])
 
     class Selector:
         def __init__(self, p, n, t, r):

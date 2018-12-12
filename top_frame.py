@@ -8,7 +8,7 @@ class TopFrame(tk.Frame):
         self.grid(row=0, sticky="new", ipady=5)
 
         # create widgets
-        self.lbl_dim_enter = tk.Label(self, text="Enter the dimensions of the area: ")
+        self.lbl_dim_enter = tk.Label(self, text="Enter the dimensions of the area in meters: ")
         self.txt_dim_x = tk.Entry(self, width=5)
         self.lbl_dim_mult = tk.Label(self, text="x")
         self.txt_dim_y = tk.Entry(self, width=5)
@@ -24,3 +24,4 @@ class TopFrame(tk.Frame):
     def click_start(self):
         self.btn_dim_start['text'] = "RESTART"
         self.parent.start()
+
