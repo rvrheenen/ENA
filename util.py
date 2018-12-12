@@ -13,7 +13,7 @@ class Helper:
 
 class OptionMenu(tk.OptionMenu):
     ''' Extend the tk OptionMenu to have a function that fixes its width to its content.'''
-    def _set_max_width(self, *args):
+    def set_max_width(self, *args):
         f = tk.font.nametofont(self.cget("font"))
         zerowidth = f.measure("0")
         w = round(max([f.measure(i) for i in args]) / zerowidth)
