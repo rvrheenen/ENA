@@ -33,9 +33,9 @@ class Selectors(list):
             self.append(self.Selector(self, "intense coverage", self.TYPE_COVERAGE, "red"))
             self.append(self.Selector(self, "no coverage needed", self.TYPE_COVERAGE, "white"))
             self.append(self.Selector(self, "not on map", self.TYPE_COVERAGE, "black"))
-            self.append(self.Selector(self, "uplink", self.TYPE_ITEM, ""))
-            self.append(self.Selector(self, "cable", self.TYPE_ITEM, ""))
-            self.append(self.Selector(self, "AP", self.TYPE_ITEM, ""))
+            self.append(self.Selector(self, "uplink", self.TYPE_ITEM, "U"))
+            self.append(self.Selector(self, "cable", self.TYPE_ITEM, "C"))
+            self.append(self.Selector(self, "AP", self.TYPE_ITEM, "AP"))
         else:
             for thing in fill:
                 self.append(thing)

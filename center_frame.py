@@ -11,7 +11,7 @@ class CenterFrame(tk.Frame):
         self.DRAW_MODE_ITEMS = "item"
         self.draw_mode = self.DRAW_MODE_COVERAGE
 
-        tk.Frame.__init__(self, parent, bg="gray", padx=5, pady=5)
+        tk.Frame.__init__(self, parent, padx=5, pady=5)
         self.parent = parent
         self.grid(row=1, column=0, ipady=5, sticky="nsew")
 
@@ -30,23 +30,27 @@ class CenterFrame(tk.Frame):
         # TODO generate more intelligent dimensions and square_size
         self.dim_x = self.parent.dim_x
         self.dim_y = self.parent.dim_y
+
         self.square_size = 20
+        self.meter_per_square = 1
         self.text_size = 6
+        self.legend_width = 200
+
         self.selector_options = Selectors()
 
     def create_map_settings(self):
-        self.btn_toggle_draw_mode= tk.Button(self, text="item mode", command=self.click_toggle_draw_mode)
-        self.btn_toggle_draw_mode.grid(row=0, column=0, pady=10)
+        self.btn_toggle_draw_mode = tk.Button(self, text="item mode", command=self.click_toggle_draw_mode)
+        self.btn_toggle_draw_mode.grid(row=0, column=0, sticky="nws", pady=10)
 
         self.lbl_instruct = tk.Label(self, text="Choose cursor: ")
-        self.lbl_instruct.grid(row=0, column=1, sticky="nw", pady=10)
+        self.lbl_instruct.grid(row=0, column=1, sticky="nws", pady=10)
 
         self.coverage_options = self.selector_options.of_type(self.DRAW_MODE_COVERAGE)
         self.selector_coverage = tk.StringVar(self)
         self.selector_coverage.set(self.coverage_options[0].name)
         self.selector_menu_coverage = OptionMenu(self, self.selector_coverage, *self.coverage_options.names())
         self.selector_menu_coverage.set_max_width(*self.coverage_options.names())
-        self.selector_menu_coverage.grid(row=0, column=2, sticky="nw", padx=10)
+        self.selector_menu_coverage.grid(row=0, column=2, sticky="nws", padx=10)
         self.selector_menu_coverage.grid_remove()
 
         self.item_options = self.selector_options.of_type(self.DRAW_MODE_ITEMS)
@@ -54,13 +58,13 @@ class CenterFrame(tk.Frame):
         self.selector_items.set(self.item_options[0].name)
         self.selector_menu_items = OptionMenu(self, self.selector_items, *self.item_options.names(), command=self.selector_menu_items_selection_event)
         self.selector_menu_items.set_max_width(*self.item_options.names())
-        self.selector_menu_items.grid(row=0, column=2, sticky="nw", padx=10)
+        self.selector_menu_items.grid(row=0, column=2, sticky="nws", padx=10)
         self.selector_menu_items.grid_remove()
 
         self.num_selector = tk.StringVar(self)
         self.num_selector.set(1)
         self.num_selector_menu = tk.OptionMenu(self, self.num_selector, *range(1,9))
-        self.num_selector_menu.grid(row=0, column=3, sticky="nw", padx=10)
+        self.num_selector_menu.grid(row=0, column=3, sticky="nws", padx=10)
         self.num_selector_menu.grid_remove()
 
     def click_toggle_draw_mode(self):
@@ -130,6 +134,27 @@ class CenterFrame(tk.Frame):
 
         self.set_draw_mode(self.DRAW_MODE_COVERAGE)
 
+    def create_map_legend(self):
+        self.canvas_legend = tk.Canvas(self, width=self.legend_width, bg='white', bd=3, relief='ridge')
+        self.canvas_legend.grid(column=3, row=1, sticky="ne")
+        self.canvas_legend.create_text(10,10, text="Legend:", anchor=tk.NW, font = ("Tahoma", 14))
+
+        x_offset, y_offset, x_space, y_space = (10, 40, 30, 30)
+        font = ("Tahoma", 11)
+        for i, option in enumerate(self.selector_options):
+            if option.type == self.selector_options.TYPE_COVERAGE:
+                self.canvas_legend.create_rectangle(x_offset, y_space*i + y_offset, x_offset+self.square_size, y_space*i + y_offset+ self.square_size, fill=option.repr)
+            elif option.type == self.selector_options.TYPE_ITEM:
+                self.canvas_legend.create_text(x_offset, y_space*i + y_offset, text=f'{option.repr}:', anchor=tk.NW, font=font)
+                print(x_offset, y_space*i + y_offset)
+            self.canvas_legend.create_text(x_offset+x_space, y_space*i + y_offset, text=f'{option.name}', anchor=tk.NW, font=font)
+
+        print(x_offset, y_space*len(self.selector_options)+y_offset)
+        self.canvas_legend.create_text(x_offset, y_space*len(self.selector_options)+y_offset, text=f'Scale: 1:{self.meter_per_square} (sq:m)', anchor=tk.NW, font=font)
+
+        self.canvas_legend.configure(height=y_space * 9 + y_offset)
+
+
     ##### CLICK EVENTS
     def on_click(self, event):
         self._dragging = True
@@ -153,7 +178,8 @@ class CenterFrame(tk.Frame):
             elif self.draw_mode == self.DRAW_MODE_ITEMS:
                 def get_text_xy(event, name):
                     ofset_x, ofset_y= {"uplink": [6,7], "cable":[11,17], "AP":[17,7]}[name]
-                    return ((event.x-1) // self.square_size) * self.square_size + ofset_x, ((event.y-1) // self.square_size) * self.square_size + ofset_y
+                    return ((event.x-1) // self.square_size) * self.square_size + ofset_x, \
+                           ((event.y-1) // self.square_size) * self.square_size + ofset_y
 
                 selector = self.item_options.get_by_name(self.selector_items.get())
                 items = self.canvas_items.find_closest(*get_text_xy(event, selector.name), 0)
@@ -167,7 +193,4 @@ class CenterFrame(tk.Frame):
     def on_release(self, event):
         self._dragging = False
 
-    def create_map_legend(self):
-        # TODO Fill the legend
-        self.lbl_legend_head = tk.Label(self, text="Legend:")
-        self.lbl_legend_head.grid(column=3, row=1, sticky="ne")
+

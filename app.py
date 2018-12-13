@@ -27,7 +27,9 @@ class App(tk.Tk):
         self.dim_x = 10
         self.dim_y = 10
 
-        self.geometry(f'{self.width}x{self.height}')
+        # dimensions
+        # self.geometry(f'{self.width}x{self.height}')
+        self.attributes("-fullscreen", True)
 
         # Create frames
         self.menu_bar = MenuBar(self)
