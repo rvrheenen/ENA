@@ -1,7 +1,8 @@
 import tkinter as tk
 from PIL import Image, ImageTk
-import pyscreenshot as ImageGrab # TODO check OS compatibility
+import pyscreenshot as ImageGrab
 from io import BytesIO
+import math
 from util import Selectors, OptionMenu, Trial
 
 
@@ -31,10 +32,23 @@ class CenterFrame(tk.Frame):
         self.dim_x = self.parent.dim_x
         self.dim_y = self.parent.dim_y
 
-        self.square_size = 20
-        self.meter_per_square = 1
-        self.text_size = 6
         self.legend_width = 200
+        self.square_size = 20
+        self.text_size = 6
+        self.meter_per_square = 1
+        self.update()
+        print(self.winfo_width(), self.legend_width, self.dim_x, self.square_size, self.meter_per_square),
+        print((self.winfo_width() - self.legend_width), (self.dim_x * self.square_size) / self.meter_per_square)
+
+        print(self.winfo_height(), 50,  self.dim_y, self.square_size, self.meter_per_square),
+        print(self.winfo_height()-50, (self.dim_y * self.square_size) / self.meter_per_square)
+        print()
+
+
+        not_enough_width = lambda : (self.winfo_width() - self.legend_width - self.square_size) < (self.dim_x * self.square_size) / self.meter_per_square
+        not_enough_height = lambda : (self.winfo_height() - 50) < (self.dim_y * self.square_size) / self.meter_per_square
+        while not_enough_width() or not_enough_height():
+            self.meter_per_square *= 2
 
         self.selector_options = Selectors()
 
@@ -109,7 +123,6 @@ class CenterFrame(tk.Frame):
             bg_image = self.canvas_items.create_image(0, 0, image=self.canvas_items.background, anchor=tk.NW)
             self.canvas_items.tag_lower(bg_image)
 
-
     def create_map_canvas(self):
         with Trial(): self.canvas_coverage.destroy()  # remove canvas_coverage if it exists
         with Trial(): self.canvas_items.destroy()  # remove canvas_items if it exists
@@ -117,8 +130,8 @@ class CenterFrame(tk.Frame):
         self.canvas_coverage = tk.Canvas(self, height=self.square_size*self.dim_y + 1)
         self.canvas_coverage.grid(column=0, row=1, sticky="new", columnspan=4)
 
-        for x in range(self.parent.dim_x):
-            for y in range(self.parent.dim_y):
+        for x in range(math.ceil(self.parent.dim_x / self.meter_per_square)):
+            for y in range(math.ceil(self.parent.dim_y / self.meter_per_square)):
                 self.canvas_coverage.create_rectangle(self.square_size * x + 1,
                                                       self.square_size * y + 1,
                                                       self.square_size * x + self.square_size + 1,
@@ -146,11 +159,9 @@ class CenterFrame(tk.Frame):
                 self.canvas_legend.create_rectangle(x_offset, y_space*i + y_offset, x_offset+self.square_size, y_space*i + y_offset+ self.square_size, fill=option.repr)
             elif option.type == self.selector_options.TYPE_ITEM:
                 self.canvas_legend.create_text(x_offset, y_space*i + y_offset, text=f'{option.repr}:', anchor=tk.NW, font=font)
-                print(x_offset, y_space*i + y_offset)
             self.canvas_legend.create_text(x_offset+x_space, y_space*i + y_offset, text=f'{option.name}', anchor=tk.NW, font=font)
 
-        print(x_offset, y_space*len(self.selector_options)+y_offset)
-        self.canvas_legend.create_text(x_offset, y_space*len(self.selector_options)+y_offset, text=f'Scale: 1:{self.meter_per_square} (sq:m)', anchor=tk.NW, font=font)
+        self.canvas_legend.create_text(x_offset, y_space*len(self.selector_options)+y_offset, text=f'Scale: 1:{self.meter_per_square} (sq:m)', anchor=tk.NW, font=font, fill="red" if self.meter_per_square > 1 else "black")
 
         self.canvas_legend.configure(height=y_space * 9 + y_offset)
 
