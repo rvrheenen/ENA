@@ -4,6 +4,7 @@ import pyscreenshot as ImageGrab
 from io import BytesIO
 import math
 from util import Selectors, OptionMenu, Trial
+from ena_map import ENAMap
 
 
 class CenterFrame(tk.Frame):
@@ -11,6 +12,7 @@ class CenterFrame(tk.Frame):
         self.DRAW_MODE_COVERAGE = "coverage"
         self.DRAW_MODE_ITEMS = "item"
         self.draw_mode = self.DRAW_MODE_COVERAGE
+        self.dislay_coverage_mode = False
 
         tk.Frame.__init__(self, parent, padx=5, pady=5)
         self.parent = parent
@@ -20,12 +22,25 @@ class CenterFrame(tk.Frame):
             self.start_map_design()
 
     ##### MAP METHODS
-    def start_map_design(self):
+    def start_map_design(self, ena_map=None):
         self.grid_columnconfigure(3, weight=1)
         self.set_parameters()
         self.create_map_settings()
         self.create_map_canvas()
         self.create_map_legend()
+        if ena_map:
+            self.load_squares(ena_map)
+            self.set_draw_mode(self.DRAW_MODE_ITEMS)
+
+    def load_squares(self, ena_map):
+        for x in range(ena_map.squares_x):
+            for y in range(ena_map.squares_y):
+                sq = ena_map.squares[x][y]
+                if sq.coverage:
+                    self.set_square_coverage(sq.x*self.square_size+1, sq.y*self.square_size+1, sq.coverage)
+                for feature in sq.features:
+                    self.set_square_item(sq.x*self.square_size+1, sq.y*self.square_size+1, feature)
+        self.update()
 
     def set_parameters(self):
         # TODO generate more intelligent dimensions and square_size
@@ -36,19 +51,15 @@ class CenterFrame(tk.Frame):
         self.square_size = 20
         self.text_size = 6
         self.meter_per_square = 1
+
         self.update()
-        print(self.winfo_width(), self.legend_width, self.dim_x, self.square_size, self.meter_per_square),
-        print((self.winfo_width() - self.legend_width), (self.dim_x * self.square_size) / self.meter_per_square)
-
-        print(self.winfo_height(), 50,  self.dim_y, self.square_size, self.meter_per_square),
-        print(self.winfo_height()-50, (self.dim_y * self.square_size) / self.meter_per_square)
-        print()
-
-
         not_enough_width = lambda : (self.winfo_width() - self.legend_width - self.square_size) < (self.dim_x * self.square_size) / self.meter_per_square
         not_enough_height = lambda : (self.winfo_height() - 50) < (self.dim_y * self.square_size) / self.meter_per_square
         while not_enough_width() or not_enough_height():
             self.meter_per_square *= 2
+
+        self.squares_x = math.ceil(self.parent.dim_x / self.meter_per_square)
+        self.squares_y = math.ceil(self.parent.dim_y / self.meter_per_square)
 
         self.selector_options = Selectors()
 
@@ -81,6 +92,10 @@ class CenterFrame(tk.Frame):
         self.num_selector_menu.grid(row=0, column=3, sticky="nws", padx=10)
         self.num_selector_menu.grid_remove()
 
+        self.btn_toggle_display_mode = tk.Button(self, text="check coverage ", command=self.do_coverage_check)
+        self.btn_toggle_display_mode.grid(row=0, column=3, sticky="nes", pady=10)
+        self.btn_toggle_display_mode.grid_remove()
+
     def click_toggle_draw_mode(self):
         if self.draw_mode == self.DRAW_MODE_COVERAGE:
             self.set_draw_mode(self.DRAW_MODE_ITEMS)
@@ -103,6 +118,7 @@ class CenterFrame(tk.Frame):
             self.selector_menu_coverage.grid()
             self.btn_toggle_draw_mode['text'] = f"{self.DRAW_MODE_ITEMS} mode"
             self.selector_menu_items_selection_event()
+            self.btn_toggle_display_mode.grid_remove()
 
         elif mode == self.DRAW_MODE_ITEMS:
             tk.Misc.lift(self.canvas_items)
@@ -111,6 +127,7 @@ class CenterFrame(tk.Frame):
             self.selector_menu_items.grid()
             self.btn_toggle_draw_mode['text'] = f"{self.DRAW_MODE_COVERAGE} mode"
             self.selector_menu_items_selection_event()
+            self.btn_toggle_display_mode.grid()
 
             box = (self.canvas_coverage.winfo_rootx(),
                    self.canvas_coverage.winfo_rooty(),
@@ -123,22 +140,26 @@ class CenterFrame(tk.Frame):
             bg_image = self.canvas_items.create_image(0, 0, image=self.canvas_items.background, anchor=tk.NW)
             self.canvas_items.tag_lower(bg_image)
 
+        if hasattr(self, "canvas_legend"):
+            tk.Misc.lift(self.canvas_legend)
+
     def create_map_canvas(self):
         with Trial(): self.canvas_coverage.destroy()  # remove canvas_coverage if it exists
         with Trial(): self.canvas_items.destroy()  # remove canvas_items if it exists
 
         self.canvas_coverage = tk.Canvas(self, height=self.square_size*self.dim_y + 1)
-        self.canvas_coverage.grid(column=0, row=1, sticky="new", columnspan=4)
+        self.canvas_coverage.grid(column=0, row=1, sticky="new", columnspan=5)
 
-        for x in range(math.ceil(self.parent.dim_x / self.meter_per_square)):
-            for y in range(math.ceil(self.parent.dim_y / self.meter_per_square)):
+        for x in range(self.squares_x):
+            for y in range(self.squares_y):
                 self.canvas_coverage.create_rectangle(self.square_size * x + 1,
                                                       self.square_size * y + 1,
                                                       self.square_size * x + self.square_size + 1,
-                                                      self.square_size * y + self.square_size + 1)
+                                                      self.square_size * y + self.square_size + 1,
+                                                      tags="square")
 
         self.canvas_items = tk.Canvas(self, height=self.square_size*self.dim_y + 1)
-        self.canvas_items.grid(column=0, row=1, sticky="new", columnspan=4)
+        self.canvas_items.grid(column=0, row=1, sticky="new", columnspan=5)
 
         for canv in [self.canvas_coverage, self.canvas_items]:
             canv.bind("<ButtonPress-1>", self.on_click)
@@ -149,8 +170,8 @@ class CenterFrame(tk.Frame):
 
     def create_map_legend(self):
         self.canvas_legend = tk.Canvas(self, width=self.legend_width, bg='white', bd=3, relief='ridge')
-        self.canvas_legend.grid(column=3, row=1, sticky="ne")
-        self.canvas_legend.create_text(10,10, text="Legend:", anchor=tk.NW, font = ("Tahoma", 14))
+        self.canvas_legend.grid(column=4, row=1, sticky="e")
+        self.canvas_legend.create_text(10,10, text="Legend:", anchor=tk.NW, font=("Tahoma", 14))
 
         x_offset, y_offset, x_space, y_space = (10, 40, 30, 30)
         font = ("Tahoma", 11)
@@ -172,36 +193,83 @@ class CenterFrame(tk.Frame):
         self.on_move(event)
 
     def on_move(self, event):
-        ss = self.square_size
+        if self.dislay_coverage_mode:
+            return
 
+        ss = self.square_size
         def sq_offset(c):  # used to correct mismatching of closest element.
             return max(0, (c - ss // 2) if c % ss > ss // 2 else c)
 
         cursor_in_map = event.x < self.dim_x * ss
         if cursor_in_map and self._dragging:
             if self.draw_mode == self.DRAW_MODE_COVERAGE:
-                items = self.canvas_coverage.find_closest(sq_offset(event.x), sq_offset(event.y))
-                if items:
-                    rect_id = items[0]
-                    selector = self.coverage_options.get_by_name(self.selector_coverage.get())
-                    self.canvas_coverage.itemconfigure(rect_id, fill=selector.repr)
-
+                self.set_square_coverage(event.x, event.y, self.coverage_options.get_by_name(self.selector_coverage.get()).repr)
             elif self.draw_mode == self.DRAW_MODE_ITEMS:
-                def get_text_xy(event, name):
-                    ofset_x, ofset_y= {"uplink": [6,7], "cable":[11,17], "AP":[17,7]}[name]
-                    return ((event.x-1) // self.square_size) * self.square_size + ofset_x, \
-                           ((event.y-1) // self.square_size) * self.square_size + ofset_y
-
                 selector = self.item_options.get_by_name(self.selector_items.get())
-                items = self.canvas_items.find_closest(*get_text_xy(event, selector.name), 0)
-                if items and self.canvas_items.type(items[0]) == "text":
-                    self.canvas_items.delete(items[0])
-                else:
-                    self.canvas_items.create_text(*get_text_xy(event, selector.name),
-                                                  text={"uplink": "U", "cable":f'C{self.num_selector.get()}', "AP":"A"}[selector.name],
-                                                  font = ("Tahoma", self.text_size))
+                self.set_square_item(event.x, event.y, f'{selector.repr}{self.num_selector.get() if selector.repr=="C" else ""}')
+                self._dragging = False
+
+    def set_square_coverage(self, pos_x, pos_y, repr):
+        ss = self.square_size
+
+        def sq_offset(c):  # used to correct mismatching of closest element.
+            return max(0, (c - ss // 2) if c % ss > ss // 2 else c)
+
+        items = self.canvas_coverage.find_closest(sq_offset(pos_x), sq_offset(pos_y))
+        if items:
+            self.canvas_coverage.itemconfigure(items[0], fill=repr)
+
+    def set_square_item(self, pos_x, pos_y, repr):
+        def get_text_xy(x, y, repr):
+            ofset_x, ofset_y = {"U": [6, 7], "C": [11, 17], "A": [17, 7]}[repr[:1]]
+            return ((x - 1) // self.square_size) * self.square_size + ofset_x, \
+                   ((y - 1) // self.square_size) * self.square_size + ofset_y
+
+        items = self.canvas_items.find_closest(*get_text_xy(pos_x, pos_y, repr), 0)
+        if items and self.canvas_items.type(items[0]) == "text":
+            self.canvas_items.delete(items[0])
+        else:
+            self.canvas_items.create_text(*get_text_xy(pos_x, pos_y, repr),
+                                          text=repr,
+                                          font=("Tahoma", self.text_size),
+                                          tags=repr[:1])
 
     def on_release(self, event):
         self._dragging = False
+
+    def do_coverage_check(self):
+        pass
+
+        # if modus is on:
+            # remove uncovered squares display
+            # set modus off
+
+        # get map_info()
+        # for each square check if coverage is enough
+        # if all squares are good:
+            # show pop-up with calculations
+        # else:
+            # display in map all uncovered squares
+
+
+    def get_map_info(self):
+        ena_map = ENAMap(self.squares_x, self.squares_y, self.meter_per_square)
+
+        for item_id in self.canvas_coverage.find_withtag("square"):
+            ena_map.set_square_coverage(
+                int(self.canvas_coverage.coords(item_id)[0] // self.square_size),
+                int(self.canvas_coverage.coords(item_id)[1] // self.square_size),
+                self.canvas_coverage.itemcget(item_id, "fill")
+                # self.selector_options.get_by_repr(self.canvas_coverage.itemcget(item_id, "fill"))
+            )
+
+        for option in self.item_options:
+            for item_id in self.canvas_items.find_withtag(option.repr):
+                x, y = [int(c // self.square_size) for c in self.canvas_items.coords(item_id)[:2]]
+                ena_map.add_square_feature(x, y, self.canvas_items.itemcget(item_id, 'text'))
+
+        return ena_map
+
+
 
 

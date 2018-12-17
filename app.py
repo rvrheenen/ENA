@@ -45,12 +45,9 @@ class App(tk.Tk):
         # self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(2, weight=0)
 
-
     def reinitialize(self):
-        to_destroy = ["menu_bar", "top_frame", "center_frame", "bottom_frame"]
-
-        for thing in to_destroy:
-            if hasattr(self, "center_frame"):
+        for thing in ["menu_bar", "top_frame", "center_frame", "bottom_frame"]:
+            if hasattr(self, thing):
                 try:
                     self.__getattribute__(thing).destroy()
                 except:
@@ -66,3 +63,17 @@ class App(tk.Tk):
             self.center_frame.start_map_design()
         except ValueError:
             Helper.message_box("error", "Bad Input", "Illegal values, please try again")
+
+    def load(self, dim_x, dim_y, ena_map):
+        self.dim_x = dim_x
+        self.dim_y = dim_y
+
+        # set the dimension parameters in input fields
+        self.top_frame.txt_dim_x.delete('0', 'end')
+        self.top_frame.txt_dim_y.delete('0', 'end')
+        self.top_frame.txt_dim_x.insert('0', dim_x)
+        self.top_frame.txt_dim_y.insert('0', dim_x)
+
+        # initialize center frame with loaded file
+        self.center_frame = CenterFrame(self)
+        self.center_frame.start_map_design(ena_map)
