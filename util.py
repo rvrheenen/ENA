@@ -25,7 +25,7 @@ class Selectors(list):
     TYPE_COVERAGE = "coverage"
     TYPE_ITEM = "item"
 
-    DISTANCE_FOR_BASIC = 25
+    DISTANCE_FOR_BASIC = 20
     DISTANCE_FOR_HIGH = 10
     DISTANCE_FOR_INTENSE = 5
 
@@ -74,6 +74,9 @@ class Selectors(list):
 
         def __repr__(self):
             return self.name
+
+        def hasattr(self, a):
+            return hasattr(self, a)
 
         def is_draggable(self):
             return self.type == self.parent.TYPE_COVERAGE

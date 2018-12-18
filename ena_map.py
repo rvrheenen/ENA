@@ -7,7 +7,7 @@ class ENAMap:
         self.squares_x = squares_x
         self.squares_y = squares_y
         self.meters_per_square = meters_per_square
-        self.squares = [[Square(x * meters_per_square, y * meters_per_square) for x in range(self.squares_y)] for y in range(self.squares_x)]
+        self.squares = [[Square(y * meters_per_square, x * meters_per_square) for x in range(self.squares_y)] for y in range(self.squares_x)]
 
     def __repr__(self):
         return "\n".join(["|".join([str(sq) for sq in sqlist]) for sqlist in self.squares])
@@ -24,8 +24,10 @@ class ENAMap:
         print(ap_squares)
         for square in [square for sublist in self.squares for square in sublist]:
             if square.coverage:
-                # print(square, min([square.distance(ap) for ap in ap_squares]))
-                square.check = ap_squares and selectors.get_by_repr(square.coverage).check > min([square.distance(ap) for ap in ap_squares])
+                if selectors.get_by_repr(square.coverage).hasattr("check"):
+                    square.check = ap_squares and selectors.get_by_repr(square.coverage).check > min([square.distance(ap) for ap in ap_squares])
+                else:
+                    square.check = True
 
     def get_uncovered_squares(self):
         return [square for sublist in self.squares for square in sublist if not square.check]
@@ -46,7 +48,7 @@ class Square:
         self.check = False
 
     def __repr__(self):
-        return f'{self.x}, {self.y} {self.coverage}'
+        return f'{self.x}, {self.y} {self.coverage} {"y" if self.check else "n"}'
 
     def add_feature(self, feature):
         self.features.append(feature)

@@ -97,7 +97,7 @@ class CenterFrame(tk.Frame):
         self.num_selector_menu.grid(row=0, column=3, sticky="nws", padx=10)
         self.num_selector_menu.grid_remove()
 
-        self.btn_toggle_display_mode = tk.Button(self, text="check coverage ", command=self.do_coverage_check)
+        self.btn_toggle_display_mode = tk.Button(self, text="show coverage check", command=self.do_coverage_check)
         self.btn_toggle_display_mode.grid(row=0, column=3, sticky="nes", pady=10)
         self.btn_toggle_display_mode.grid_remove()
 
@@ -255,6 +255,7 @@ class CenterFrame(tk.Frame):
             for check_line in check_lines:
                 self.canvas_items.delete(check_line)
             self.dislay_coverage_mode = False
+            self.btn_toggle_display_mode['text'] = "close coverage check"
             return
 
         ena_map = self.get_map_info()
@@ -271,9 +272,10 @@ class CenterFrame(tk.Frame):
             return
 
         self.dislay_coverage_mode = True
+        self.btn_toggle_display_mode['text'] = "show coverage check"
         for square in uncovered_squares:
-            self.canvas_items.create_line((square.x / ena_map.meters_per_square) *self.square_size,
-                                          (square.y / ena_map.meters_per_square) *self.square_size,
+            self.canvas_items.create_line((square.x / ena_map.meters_per_square) * self.square_size,
+                                          (square.y / ena_map.meters_per_square) * self.square_size,
                                           (square.x / ena_map.meters_per_square) * self.square_size + self.square_size,
                                           (square.y / ena_map.meters_per_square) * self.square_size + self.square_size,
                                           tags="check_line")
