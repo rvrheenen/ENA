@@ -72,7 +72,7 @@ class MenuBar(tk.Menu):
             return
 
         filename = tk.filedialog.asksaveasfilename(filetypes=[("ENA Files", self.EXTENSION)], defaultextension=self.EXTENSION)
-        if filename is ():
+        if filename is () or filename is None:
             return
 
         ena_map = self.parent.center_frame.get_map_info()

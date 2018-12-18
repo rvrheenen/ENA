@@ -9,6 +9,7 @@ WIDTH = 1280
 HEIGHT = 800
 DEBUG = False
 
+
 class App(tk.Tk):
     def __init__(self, parent):
         tk.Tk.__init__(self, parent)
@@ -61,7 +62,7 @@ class App(tk.Tk):
             self.dim_y = int(self.top_frame.txt_dim_y.get())
             self.center_frame = CenterFrame(self)
             self.center_frame.start_map_design()
-        except ValueError:
+        except ValueError as e:
             Helper.message_box("error", "Bad Input", "Illegal values, please try again")
 
     def load(self, dim_x, dim_y, ena_map):
