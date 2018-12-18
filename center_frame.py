@@ -18,9 +18,6 @@ class CenterFrame(tk.Frame):
         self.parent = parent
         self.grid(row=1, column=0, ipady=5, sticky="nsew")
 
-        # if parent.debug:
-        #     self.start_map_design()
-
     ##### MAP METHODS
     def start_map_design(self, ena_map=None):
         self.grid_columnconfigure(3, weight=1)
@@ -33,7 +30,6 @@ class CenterFrame(tk.Frame):
             self.set_draw_mode(self.DRAW_MODE_ITEMS)
 
     def load_squares(self, ena_map):
-        print(ena_map)
         for x in range(ena_map.squares_x):
             for y in range(ena_map.squares_y):
                 sq = ena_map.squares[x][y]
@@ -255,7 +251,7 @@ class CenterFrame(tk.Frame):
             for check_line in check_lines:
                 self.canvas_items.delete(check_line)
             self.dislay_coverage_mode = False
-            self.btn_toggle_display_mode['text'] = "close coverage check"
+            self.btn_toggle_display_mode['text'] = "show coverage check"
             return
 
         ena_map = self.get_map_info()
@@ -266,13 +262,18 @@ class CenterFrame(tk.Frame):
             Helper.message_box("warning", "Map not done", f'You still have {uncharted_squares_count} squares that have not been filled in yet.')
             return
 
-        uncovered_squares = ena_map.get_uncovered_squares()
-        if not uncovered_squares:
-            Helper.message_box("info", "All squares covered", "All squares are sufficiently covered by the AP's")
+        if len(ena_map.get_squares_with_uplinks()) == 0:
+            Helper.message_box("warning", "Map not done", f'You have no uplinks in your map.')
             return
 
-        self.dislay_coverage_mode = True
-        self.btn_toggle_display_mode['text'] = "show coverage check"
+        uncovered_squares = ena_map.get_uncovered_squares()
+        if not uncovered_squares:
+            # Helper.message_box("info", "All squares covered", "All squares are sufficiently covered by the AP's")
+            Helper.message_box("info", "Gear Requirements", f'Needed gear:\n{ena_map.calculate_gear(format=True)}')
+            print("This is the needed gear:")
+            print(ena_map.calculate_gear(format=True))
+            return
+
         for square in uncovered_squares:
             self.canvas_items.create_line((square.x / ena_map.meters_per_square) * self.square_size,
                                           (square.y / ena_map.meters_per_square) * self.square_size,
@@ -284,6 +285,8 @@ class CenterFrame(tk.Frame):
                                           (square.x / ena_map.meters_per_square) * self.square_size,
                                           (square.y / ena_map.meters_per_square) * self.square_size + self.square_size,
                                           tags="check_line")
+        self.dislay_coverage_mode = True
+        self.btn_toggle_display_mode['text'] = "close coverage check"
 
     def get_map_info(self):
         ena_map = ENAMap(self.squares_x, self.squares_y, self.meter_per_square)

@@ -21,7 +21,6 @@ class ENAMap:
     def check_squares(self):
         selectors = Selectors()
         ap_squares = self.get_squares_with_APs()
-        print(ap_squares)
         for square in [square for sublist in self.squares for square in sublist]:
             if square.coverage:
                 if selectors.get_by_repr(square.coverage).hasattr("check"):
@@ -35,8 +34,73 @@ class ENAMap:
     def get_squares_with_APs(self):
         return [square for sublist in self.squares for square in sublist if "A" in square.features]
 
+    def get_squares_with_uplinks(self):
+        return [square for sublist in self.squares for square in sublist if "U" in square.features]
+
+    def get_squares_with_cables(self):
+        return [square for sublist in self.squares for square in sublist if "C" in [feat[:1] for feat in square.features]]
+
     def count_uncharted_squares(self):
         return sum([1 for sublist in self.squares for square in sublist if not square.coverage])
+
+    def calculate_gear(self, format=False):
+        needed_slack = 1
+        possible_cables = [3, 5, 10, 15, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+        gear = {
+            "small switch" : 0,
+            "large switch" : 0,
+            "access point": 0,
+            "cables": {c:0 for c in possible_cables},
+        }
+
+        uplink_squares = self.get_squares_with_uplinks()
+        uplinks = [0 for _ in uplink_squares]
+        for ap in self.get_squares_with_APs():
+            closest_up = -1
+            closet_dist = 99999999
+            for i, upsq in enumerate(uplink_squares):
+                dist = ap.manhattan_distance(upsq)+needed_slack
+                if dist < closet_dist:
+                    closet_dist = dist
+                    closest_up = i
+            uplinks[closest_up] += 1
+            gear['cables'][[c for c in possible_cables if c > closet_dist][0]] += 1
+            gear['access point'] += 1
+
+        for cab in self.get_squares_with_cables():
+            print(cab)
+            closest_up = -1
+            closet_dist = 99999999
+            for i, upsq in enumerate(uplink_squares):
+                dist = ap.manhattan_distance(upsq)+needed_slack
+                if dist < closet_dist:
+                    closet_dist = dist
+                    closest_up = i
+            uplinks[closest_up] += 1
+            gear['cables'][[c for c in possible_cables if c > closet_dist][0]] += 1
+            cables_needed_at_point = [int(feat[1:]) for feat in cab.features if feat[:1] == 'C'][0]
+            if cables_needed_at_point > 1:
+                gear['small switch'] += 1
+                gear['cables'][5] += cables_needed_at_point
+
+        for i, connections in enumerate(uplinks):
+            if connections > 0:
+                gear['large switch'] += 1
+                gear['cables'][3] += 1
+
+        return self.format_gear(gear) if format else gear
+
+    def format_gear(self, gear):
+        string = ""
+        for k, v in gear.items():
+            if type(v) == int:
+                string += f'{k}: {v}\n'
+            elif type(v) == dict:
+                string += f'{k}:\n'
+                for length, amount in v.items():
+                    if amount > 0:
+                        string += f'  {length}m: {amount}\n'
+        return string
 
 
 class Square:
@@ -48,10 +112,13 @@ class Square:
         self.check = False
 
     def __repr__(self):
-        return f'{self.x}, {self.y} {self.coverage} {"y" if self.check else "n"}'
+        return f'{self.x}, {self.y} {self.coverage} {"y" if self.check else "n"} {self.features}'
 
     def add_feature(self, feature):
         self.features.append(feature)
 
     def distance(self, square):
         return math.sqrt( (square.x - self.x)**2 + (square.y - self.y)**2)
+
+    def manhattan_distance(self, square):
+        return abs(square.x - self.x) + abs(square.y-self.y)
