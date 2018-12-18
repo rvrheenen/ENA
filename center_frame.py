@@ -269,9 +269,8 @@ class CenterFrame(tk.Frame):
         uncovered_squares = ena_map.get_uncovered_squares()
         if not uncovered_squares:
             # Helper.message_box("info", "All squares covered", "All squares are sufficiently covered by the AP's")
-            Helper.message_box("info", "Gear Requirements", f'Needed gear:\n{ena_map.calculate_gear(format=True)}')
-            print("This is the needed gear:")
-            print(ena_map.calculate_gear(format=True))
+            # Helper.message_box("info", "Gear Requirements", f'Needed gear:\n{ena_map.calculate_gear(format=True)}')
+            self.show_gear_report(ena_map.calculate_gear(format=True))
             return
 
         for square in uncovered_squares:
@@ -287,6 +286,20 @@ class CenterFrame(tk.Frame):
                                           tags="check_line")
         self.dislay_coverage_mode = True
         self.btn_toggle_display_mode['text'] = "close coverage check"
+
+    def show_gear_report(self, gear_report):
+        top = tk.Toplevel()
+        top.title("Gear Requirements")
+
+        msg = tk.Message(top, text=f'Gear Requirements Report:\n\n{gear_report}')
+        msg.pack(expand=True, fill='both')
+
+        # TODO make pdf export
+        btn = tk.Button(top, text="Export to PDF", command=top.destroy)
+        btn.pack(side=tk.LEFT)
+
+        btn2 = tk.Button(top, text="Dismiss", command=top.destroy)
+        btn2.pack(side=tk.RIGHT)
 
     def get_map_info(self):
         ena_map = ENAMap(self.squares_x, self.squares_y, self.meter_per_square)
