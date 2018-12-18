@@ -68,7 +68,6 @@ class ENAMap:
             gear['access point'] += 1
 
         for cab in self.get_squares_with_cables():
-            print(cab)
             closest_up = -1
             closet_dist = 99999999
             for i, upsq in enumerate(uplink_squares):

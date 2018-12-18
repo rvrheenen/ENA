@@ -26,8 +26,8 @@ class Selectors(list):
     TYPE_ITEM = "item"
 
     DISTANCE_FOR_BASIC = 20
-    DISTANCE_FOR_HIGH = 10
-    DISTANCE_FOR_INTENSE = 5
+    DISTANCE_FOR_HIGH = 12
+    DISTANCE_FOR_INTENSE = 8
 
     def __init__(self, fill=None):
         self._inner_list = list()
@@ -68,7 +68,6 @@ class Selectors(list):
             self.type = t
             self.repr = r
 
-            # print(kwargs)
             for k, v in kwargs.items():
                 setattr(self, k, v)
 

@@ -73,7 +73,7 @@ class App(tk.Tk):
         self.top_frame.txt_dim_x.delete('0', 'end')
         self.top_frame.txt_dim_y.delete('0', 'end')
         self.top_frame.txt_dim_x.insert('0', dim_x)
-        self.top_frame.txt_dim_y.insert('0', dim_x)
+        self.top_frame.txt_dim_y.insert('0', dim_y)
 
         # initialize center frame with loaded file
         self.center_frame = CenterFrame(self)
