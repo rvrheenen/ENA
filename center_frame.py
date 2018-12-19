@@ -37,7 +37,8 @@ class CenterFrame(tk.Frame):
                     self.set_square_coverage(x*self.square_size+1, y*self.square_size+1, sq.coverage)
                 for feature in sq.features:
                     self.set_square_item(x*self.square_size+1, y*self.square_size+1, feature)
-            self.update()
+        self.update()
+
 
     def set_parameters(self):
         # TODO generate more intelligent dimensions and square_size

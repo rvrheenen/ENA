@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import filedialog
 import pickle
+import time
 from util import Helper
 
 
@@ -58,6 +59,7 @@ class MenuBar(tk.Menu):
                 return
 
         filename = tk.filedialog.askopenfilename(filetypes=[("ENA Files", self.EXTENSION)])
+        time.sleep(.1)
         if filename == ():
             return
 
@@ -72,7 +74,8 @@ class MenuBar(tk.Menu):
             return
 
         filename = tk.filedialog.asksaveasfilename(filetypes=[("ENA Files", self.EXTENSION)], defaultextension=self.EXTENSION)
-        if filename is () or filename is None:
+        time.sleep(.1)
+        if filename is () or filename is None or filename == '':
             return
 
         ena_map = self.parent.center_frame.get_map_info()
