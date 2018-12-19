@@ -29,8 +29,11 @@ class App(tk.Tk):
         self.dim_y = 10
 
         # dimensions
-        # self.geometry(f'{self.width}x{self.height}')
-        self.attributes("-fullscreen", True)
+        if [self.winfo_screenwidth(), self.winfo_screenheight()] == [1680, 1050]:
+            self.attributes("-fullscreen", True)
+        else:
+            self.geometry('1680x1050')
+
 
         # Create frames
         self.menu_bar = MenuBar(self)
