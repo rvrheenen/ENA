@@ -1,3 +1,0 @@
-- drag selection rectangle to colour multiple squares
-- export to pdf
-- modifiable settings
