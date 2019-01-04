@@ -3,7 +3,7 @@ from menu_bar import *
 from top_frame import *
 from center_frame import *
 from bottom_frame import *
-from util import Helper
+from util import Helper, Settings
 
 WIDTH = 1280
 HEIGHT = 800
@@ -14,11 +14,12 @@ class App(tk.Tk):
     def __init__(self, parent):
         tk.Tk.__init__(self, parent)
         self.parent = parent
+        self.settings = Settings()
 
         # Set constants
         self.width  = WIDTH
         self.height = HEIGHT
-        self.debug  = DEBUG
+        self.debug  = self.settings.getboolean('DEBUG', 'debug')
 
         #initialize app
         self.initialize()

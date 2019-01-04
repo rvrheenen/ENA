@@ -1,4 +1,4 @@
-from util import Selectors
+from util import Selectors, Settings
 import math
 
 
@@ -44,7 +44,8 @@ class ENAMap:
         return sum([1 for sublist in self.squares for square in sublist if not square.coverage])
 
     def calculate_gear(self, format=False):
-        needed_slack = 1
+        settings = Settings()
+        needed_slack = settings.getfloat("DISTANCES", "needed_slack")
         possible_cables = [3, 5, 10, 15, 20, 30, 40, 50, 60, 70, 80, 90, 100]
         gear = {
             "small switch" : 0,
@@ -54,33 +55,34 @@ class ENAMap:
         }
 
         uplink_squares = self.get_squares_with_uplinks()
-        uplinks = [0 for _ in uplink_squares]
-        for ap in self.get_squares_with_APs():
-            closest_up = -1
-            closet_dist = 99999999
-            for i, upsq in enumerate(uplink_squares):
-                dist = ap.manhattan_distance(upsq)+needed_slack
-                if dist < closet_dist:
-                    closet_dist = dist
-                    closest_up = i
-            uplinks[closest_up] += 1
-            gear['cables'][[c for c in possible_cables if c > closet_dist][0]] += 1
-            gear['access point'] += 1
+        uplinks = [0 for _ in uplink_squares]  # list of amount of connections per uplink
 
-        for cab in self.get_squares_with_cables():
+        for ap in self.get_squares_with_APs():  # for all our Access Points
             closest_up = -1
             closet_dist = 99999999
-            for i, upsq in enumerate(uplink_squares):
-                dist = ap.manhattan_distance(upsq)+needed_slack
+            for i, upsq in enumerate(uplink_squares):  # find the closest uplink
+                dist = ap.manhattan_distance(upsq) + needed_slack
                 if dist < closet_dist:
                     closet_dist = dist
                     closest_up = i
-            uplinks[closest_up] += 1
-            gear['cables'][[c for c in possible_cables if c > closet_dist][0]] += 1
+            uplinks[closest_up] += 1  # add 1 to connection counter of the closest uplink
+            gear['cables'][[c for c in possible_cables if c > closet_dist][0]] += 1  # add needed cable
+            gear['access point'] += 1  # add access point
+
+        for cab in self.get_squares_with_cables():  # for all cable squares
+            closest_up = -1
+            closet_dist = 99999999
+            for i, upsq in enumerate(uplink_squares):  # find closest uplink
+                dist = ap.manhattan_distance(upsq) + needed_slack
+                if dist < closet_dist:
+                    closet_dist = dist
+                    closest_up = i
+            uplinks[closest_up] += 1  # add 1 to connection counter of the closest uplink
+            gear['cables'][[c for c in possible_cables if c > closet_dist][0]] += 1  # add needed cable
             cables_needed_at_point = [int(feat[1:]) for feat in cab.features if feat[:1] == 'C'][0]
             if cables_needed_at_point > 1:
-                gear['small switch'] += 1
-                gear['cables'][5] += cables_needed_at_point
+                gear['small switch'] += 1  # add small switch
+                gear['cables'][5] += cables_needed_at_point  # add 5m cables
 
         for i, connections in enumerate(uplinks):
             if connections > 0:

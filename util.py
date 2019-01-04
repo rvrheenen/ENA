@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import font, messagebox
+import configparser
 
 class Helper:
     @staticmethod
@@ -21,21 +22,31 @@ class OptionMenu(tk.OptionMenu):
         self.config(width=w)
 
 
+class Settings(configparser.ConfigParser):
+    DEFAULT_CONFIG_FILE = "settings.ini"
+
+    def __init__(self, config_file=None):
+        configparser.ConfigParser.__init__(self)
+        self.config_file = self.DEFAULT_CONFIG_FILE if config_file is None else config_file
+        self.read(self.config_file)
+
+    def write_changes(self):
+        with open(self.config_file, 'w') as configfile:
+            self.write(configfile)
+
+
 class Selectors(list):
     TYPE_COVERAGE = "coverage"
     TYPE_ITEM = "item"
-
-    DISTANCE_FOR_BASIC = 20
-    DISTANCE_FOR_HIGH = 12
-    DISTANCE_FOR_INTENSE = 8
 
     def __init__(self, fill=None):
         self._inner_list = list()
 
         if fill == None:
-            self.append(self.Selector(self, "basic coverage", self.TYPE_COVERAGE, "yellow", check=self.DISTANCE_FOR_BASIC))
-            self.append(self.Selector(self, "high coverage", self.TYPE_COVERAGE, "orange", check=self.DISTANCE_FOR_HIGH))
-            self.append(self.Selector(self, "intense coverage", self.TYPE_COVERAGE, "red", check=self.DISTANCE_FOR_INTENSE))
+            settings = Settings()
+            self.append(self.Selector(self, "basic coverage", self.TYPE_COVERAGE, "yellow", check=settings.getfloat('DISTANCES', 'distance_for_basic')))
+            self.append(self.Selector(self, "high coverage", self.TYPE_COVERAGE, "orange", check=settings.getfloat('DISTANCES', 'distance_for_high')))
+            self.append(self.Selector(self, "intense coverage", self.TYPE_COVERAGE, "red", check=settings.getfloat('DISTANCES', 'distance_for_intense')))
             self.append(self.Selector(self, "no coverage needed", self.TYPE_COVERAGE, "white"))
             self.append(self.Selector(self, "not on map", self.TYPE_COVERAGE, "gray"))
             self.append(self.Selector(self, "uplink", self.TYPE_ITEM, "U"))
