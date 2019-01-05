@@ -88,19 +88,18 @@ class ENAMap:
             if connections > 0:
                 gear['large switch'] += 1
                 gear['cables'][3] += 1
-
         return self.format_gear(gear) if format else gear
 
     def format_gear(self, gear):
         string = ""
-        for k, v in gear.items():
-            if type(v) == int:
-                string += f'{k}: {v}\n'
-            elif type(v) == dict:
-                string += f'{k}:\n'
-                for length, amount in v.items():
-                    if amount > 0:
-                        string += f'  {length}m: {amount}\n'
+        for gear_type, gear_amount in gear.items():
+            if type(gear_amount) == int:
+                string += f'{gear_type}: {gear_amount}\n'
+            elif type(gear_amount) == dict:  # if amount is a sub dictionary
+                string += f'{gear_type}:\n'
+                for cable_length, cable_amount in gear_amount.items():
+                    if cable_amount > 0:
+                        string += f'  {cable_length}m: {cable_amount}\n'
         return string
 
 
