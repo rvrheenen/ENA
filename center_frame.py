@@ -5,6 +5,10 @@ from io import BytesIO
 import math
 from util import Selectors, OptionMenu, Trial, Helper
 from ena_map import ENAMap
+from reportlab.pdfgen import canvas as pdfcanvas
+from reportlab.lib.utils import ImageReader
+from reportlab.lib.pagesizes import A4
+import time
 
 
 class CenterFrame(tk.Frame):
@@ -195,7 +199,6 @@ class CenterFrame(tk.Frame):
 
         self.canvas_legend.configure(height=y_space * 10 + y_offset)
 
-    ##### CLICK EVENTS
     def on_click(self, event):
         self._dragging = True
         self.on_move(event)
@@ -296,7 +299,7 @@ class CenterFrame(tk.Frame):
         msg.pack(expand=True, fill='both')
 
         # TODO make pdf export
-        btn = tk.Button(top, text="Export to PDF", command=top.destroy)
+        btn = tk.Button(top, text="Export to PDF", command=lambda: [top.destroy(), time.sleep(.1), self.create_pdf_report(gear_report)])
         btn.pack(side=tk.LEFT)
 
         btn2 = tk.Button(top, text="Dismiss", command=top.destroy)
@@ -319,4 +322,39 @@ class CenterFrame(tk.Frame):
 
         return ena_map
 
+    def create_pdf_report(self, gear_report):
+        box = (self.canvas_items.winfo_rootx(),
+               self.canvas_items.winfo_rooty(),
+               self.canvas_items.winfo_rootx() + self.squares_x * self.square_size + 2,
+               self.canvas_items.winfo_rooty() + self.squares_y * self.square_size + 2)
 
+        fp = BytesIO()
+        ImageGrab.grab(bbox=box).save(fp, 'PNG')
+        image_file = Image.open(fp)
+        event_map = ImageReader(image_file)
+
+        filename = tk.filedialog.asksaveasfilename(filetypes=[("Gear Requirement Report", ".pdf")],
+                                                   defaultextension=".pdf")
+        time.sleep(.1)
+        if filename is () or filename is None or filename == '':
+            return
+
+        c = pdfcanvas.Canvas(filename)
+        doc_width, doc_height = A4
+
+        c.setFont('Helvetica-Bold', 16)
+        c.drawString(30, doc_height - 30, "Gear Requirement Report")
+
+        c.setFont('Helvetica', 12)
+        text_object = c.beginText(30, doc_height - 30 - 16*2)
+        for line in gear_report.split("\n"):
+            text_object.textLine(line)
+        c.drawText(text_object)
+
+        image_width, image_height = image_file.size
+
+        print(A4)
+        max_width, max_height = doc_width - 60, int(text_object.getY()) - 40
+        ratio = max(image_width / max_width, image_height / max_height, 1)
+        c.drawImage(event_map, 30, 20 + (max_height - int(image_height / ratio)), width=int(image_width / ratio), height=int(image_height / ratio))
+        c.save()
