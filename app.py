@@ -51,6 +51,10 @@ class App(tk.Tk):
         self.grid_rowconfigure(2, weight=0)
 
     def reinitialize(self):
+        """
+        Restart the application
+        :return:
+        """
         for thing in ["menu_bar", "top_frame", "center_frame", "bottom_frame"]:
             if hasattr(self, thing):
                 try:
@@ -70,6 +74,13 @@ class App(tk.Tk):
             Helper.message_box("error", "Bad Input", "Illegal values, please try again")
 
     def load(self, dim_x, dim_y, ena_map):
+        """
+        Load map from file
+        :param dim_x:
+        :param dim_y:
+        :param ena_map:
+        :return:
+        """
         self.dim_x = dim_x
         self.dim_y = dim_y
 

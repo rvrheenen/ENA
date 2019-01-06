@@ -24,6 +24,11 @@ class CenterFrame(tk.Frame):
 
     ##### MAP METHODS
     def start_map_design(self, ena_map=None):
+        """
+        initialize the map design components
+        :param ena_map:
+        :return:
+        """
         self.grid_columnconfigure(3, weight=1)
         self.set_parameters()
         self.create_map_settings()
@@ -34,6 +39,11 @@ class CenterFrame(tk.Frame):
             self.set_draw_mode(self.DRAW_MODE_ITEMS)
 
     def load_squares(self, ena_map):
+        """
+        Load map from file
+        :param ena_map:
+        :return:
+        """
         for x in range(ena_map.squares_x):
             for y in range(ena_map.squares_y):
                 sq = ena_map.squares[x][y]
@@ -45,7 +55,10 @@ class CenterFrame(tk.Frame):
 
 
     def set_parameters(self):
-        # TODO generate more intelligent dimensions and square_size
+        """
+        Set all the parameters needed for the map designing
+        :return:
+        """
         self.dim_x = self.parent.dim_x
         self.dim_y = self.parent.dim_y
 
@@ -66,6 +79,10 @@ class CenterFrame(tk.Frame):
         self.selector_options = Selectors()
 
     def create_map_settings(self):
+        """
+        Generate the bar with drawing tools
+        :return:
+        """
         self.btn_toggle_draw_mode = tk.Button(self, text="item mode", command=self.click_toggle_draw_mode)
         self.btn_toggle_draw_mode.grid(row=0, column=0, sticky="nws", pady=10)
 
@@ -115,6 +132,11 @@ class CenterFrame(tk.Frame):
             self.num_selector_menu.grid_remove()
 
     def set_draw_mode(self, mode):
+        """
+        Switch between coverage and item placing modes
+        :param mode:
+        :return:
+        """
         self.draw_mode = mode
 
         if mode == self.DRAW_MODE_COVERAGE:
@@ -152,6 +174,10 @@ class CenterFrame(tk.Frame):
             tk.Misc.lift(self.canvas_legend)
 
     def create_map_canvas(self):
+        """
+        Generate the canvasses on which user can design the map
+        :return:
+        """
         with Trial(): self.canvas_coverage.destroy()  # remove canvas_coverage if it exists
         with Trial(): self.canvas_items.destroy()  # remove canvas_items if it exists
 
@@ -177,6 +203,10 @@ class CenterFrame(tk.Frame):
         self.set_draw_mode(self.DRAW_MODE_COVERAGE)
 
     def create_map_legend(self):
+        """
+        Generate the legend on the right side of the interface
+        :return:
+        """
         self.canvas_legend = tk.Canvas(self, width=self.legend_width, bg='white', bd=3, relief='ridge')
         self.canvas_legend.grid(column=4, row=1, sticky="ne")
         self.canvas_legend.create_text(10,10, text="Legend:", anchor=tk.NW, font=("Tahoma", 14))
@@ -204,6 +234,11 @@ class CenterFrame(tk.Frame):
         self.on_move(event)
 
     def on_move(self, event):
+        """
+        Action when clicked in canvas.
+        :param event:
+        :return:
+        """
         if self.dislay_coverage_mode:
             return
 
@@ -217,6 +252,13 @@ class CenterFrame(tk.Frame):
                 self._dragging = False
 
     def set_square_coverage(self, pos_x, pos_y, repr):
+        """
+        Apply coverage to a square
+        :param pos_x:
+        :param pos_y:
+        :param repr:
+        :return:
+        """
         def sq_offset(c, ss=self.square_size):  # used to correct mismatching of closest element.
             return max(0, (c - ss // 2) if c % ss > ss // 2 else c)
 
@@ -225,6 +267,13 @@ class CenterFrame(tk.Frame):
             self.canvas_coverage.itemconfigure(items[0], fill=repr)
 
     def set_square_item(self, pos_x, pos_y, repr):
+        """
+        Apply item to a square
+        :param pos_x:
+        :param pos_y:
+        :param repr:
+        :return:
+        """
         def get_text_xy(x, y, repr):
             ofset_x, ofset_y = {"U": [6, 7], "C": [11, 17], "A": [17, 7]}[repr[:1]]
             return [((x - 1) // self.square_size) * self.square_size + ofset_x, \
@@ -243,6 +292,10 @@ class CenterFrame(tk.Frame):
         self._dragging = False
 
     def cover_all(self):
+        """
+        Apply current selector to entire map
+        :return:
+        """
         selector = self.coverage_options.get_by_name(self.selector_coverage.get())
         if tk.messagebox.askyesno("Cover all?", f"Would you like to apply {selector.name} to the entire map?"):
             for x in range(self.squares_x):
@@ -250,6 +303,10 @@ class CenterFrame(tk.Frame):
                     self.set_square_coverage(x*self.square_size+1, y*self.square_size+1, selector.repr)
 
     def do_coverage_check(self):
+        """
+        Check if all the required coverage is met. If met: show gear report, else activate display_coverage_mode
+        :return:
+        """
         if self.dislay_coverage_mode:
             check_lines = self.canvas_items.find_withtag("check_line")
             for check_line in check_lines:
@@ -292,6 +349,11 @@ class CenterFrame(tk.Frame):
         self.btn_toggle_display_mode['text'] = "close coverage check"
 
     def show_gear_report(self, gear_report):
+        """
+        Display a popup with the gear report
+        :param gear_report:
+        :return:
+        """
         top = tk.Toplevel()
         top.title("Gear Requirements")
 
@@ -306,6 +368,10 @@ class CenterFrame(tk.Frame):
         btn2.pack(side=tk.RIGHT)
 
     def get_map_info(self):
+        """
+        Parse the map
+        :return: dict with all info in the map
+        """
         ena_map = ENAMap(self.squares_x, self.squares_y, self.meter_per_square)
 
         for item_id in self.canvas_coverage.find_withtag("square"):
@@ -323,6 +389,11 @@ class CenterFrame(tk.Frame):
         return ena_map
 
     def create_pdf_report(self, gear_report):
+        """
+        Generate a pdf file with the required gear and map
+        :param gear_report: String with the required gear
+        :return:
+        """
         box = (self.canvas_items.winfo_rootx(),
                self.canvas_items.winfo_rooty(),
                self.canvas_items.winfo_rootx() + self.squares_x * self.square_size + 2,

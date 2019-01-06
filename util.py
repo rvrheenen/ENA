@@ -3,8 +3,18 @@ from tkinter import font, messagebox
 import configparser
 
 class Helper:
+    '''
+    Class with helper functions to be used at various places throughout the project
+    '''
     @staticmethod
     def message_box(type, title, message):
+        '''
+        Display message
+        :param type:
+        :param title:
+        :param message:
+        :return:
+        '''
         {
             "info": messagebox.showinfo,
             "warning": messagebox.showwarning,
@@ -13,8 +23,15 @@ class Helper:
 
 
 class OptionMenu(tk.OptionMenu):
-    ''' Extend the tk OptionMenu to have a function that fixes its width to its content.'''
+    '''
+    Extend the tk OptionMenu to have a function that fixes its width to its content.
+    '''
     def set_max_width(self, *args):
+        '''
+        Set the width of the optionmenu to fit content
+        :param args:
+        :return:
+        '''
         f = tk.font.nametofont(self.cget("font"))
         zerowidth = f.measure("0")
         w = round(max([f.measure(i) for i in args]) / zerowidth)
@@ -23,6 +40,9 @@ class OptionMenu(tk.OptionMenu):
 
 
 class Settings(configparser.ConfigParser):
+    '''
+    Class that reads the configuration from the settings file.
+    '''
     DEFAULT_CONFIG_FILE = "settings.ini"
 
     def __init__(self, config_file=None):
